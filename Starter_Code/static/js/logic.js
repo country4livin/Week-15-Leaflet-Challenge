@@ -5,14 +5,12 @@ let baseMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
 
 // OPTIONAL: Step 2
 // Create the 'street' tile layer as a second background of the map
-let streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-});
+
 // Create the map object with center and zoom options.
 myMap = L.map("map", {
   center: [37.09, -95.71],
   zoom: 5,
-  layers: [baseMap, streetMap]
+  layers: [baseMap]
   });
 
 // Then add the 'basemap' tile layer to the map.
@@ -20,10 +18,6 @@ myMap = L.map("map", {
 // OPTIONAL: Step 2
 // Create the layer groups, base maps, and overlays for our two sets of data, earthquakes and tectonic_plates.
 // Add a control to the map that will allow the user to change which layers are visible.
-L.control.layers(baseMap, streetMap, {
-  collapsed: false
-}).addTo(myMap);
-
 
 // Make a request that retrieves the earthquake geoJSON data.
 d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson").then(function (data) {
@@ -35,9 +29,9 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geoj
     return {
           opacity: 1,
           fillOpacity: 1,
-          fillColor: mapColor(feature.geometry.coordinates[2]),
+          fillColor: getColor(feature.geometry.coordinates[2]),
           color: "#000000",
-          radius: mapRadius(feature.properties.mag),
+          radius: getRadius(feature.properties.mag),
           weight: 0.5
     };
   }
@@ -57,23 +51,18 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geoj
         return "lightgreen";
       default:
         return "green";
-      }
     }
-
   }
+
 
   // This function determines the radius of the earthquake marker based on its magnitude.
   function getRadius(magnitude) {
-    if (mag === 0) {
-      return 1;
-     }
-      
-      return mag * 4;
-     }
+    return magnitude === 0 ? 1 : magnitude * 4;
+  }
 
 
   // Add a GeoJSON layer to the map once the file is loaded.
-  L.geoJson(data, {
+let earthquakes = L.geoJson(data, {
     // Turn each feature into a circleMarker on the map.
     pointToLayer: function (feature, latlng) {
       return L.circleMarker(latlng);
@@ -86,10 +75,10 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geoj
     }
   // OPTIONAL: Step 2
   // Add the data to the earthquake layer instead of directly to the map.
-  }).addTo(myMap);
+}).addTo(myMap);
 
   // Create a legend control object.
-  let legend = L.control({
+let legend = L.control({
     position: "bottomright"
   });
 
@@ -98,13 +87,13 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geoj
     let div = L.DomUtil.create("div", "info legend");
 
     // Initialize depth intervals and colors for the legend
-    depth = [-10, 10, 30, 50, 70, 90];
+    let depth = [-10, 10, 30, 50, 70, 90];
 
     // Loop through our depth intervals to generate a label with a colored square for each interval.
-    for (var i = 0; i < grades.length; i++) {
+    for (var i = 0; i < depth.length; i++) {
       div.innerHTML +=
-          '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
-          grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+          '<i style="background:' + getColor(depth[i] + 1) + '"></i> ' +
+          depth[i] + (depth[i + 1] ? '&ndash;' + depth[i + 1] + '<br>' : '+');
   }
     return div;
   };
@@ -114,11 +103,6 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geoj
 
   // OPTIONAL: Step 2
   // Make a request to get our Tectonic Plate geoJSON data.
-  d3.json("https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json").then(function (plate_data) {
+  //d3.json("https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json").then(function (plate_data) {
     // Save the geoJSON data, along with style information, to the tectonic_plates layer.
-
-
-    // Then add the tectonic_plates layer to the map.
-
-  });
-
+    // Then add the tectonic_plates layer to the map.};
